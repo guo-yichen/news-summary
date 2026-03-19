@@ -40,7 +40,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: state.json
-          key: news-summary-state
+          key: news-summary-state-${{ github.run_id }}
           restore-keys: news-summary-state
 
       - name: Create sources.yaml
@@ -54,14 +54,19 @@ jobs:
           SUPADATA_API_KEY: ${{ secrets.SUPADATA_API_KEY }}
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-          OUTPUT_MODE: notion
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          OUTPUT_MODE: both
           NEWS_SUMMARY_STATE: ./state.json
         run: python -m src.runner
 
       - name: Commit summaries
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git add summaries/
           git diff --cached --quiet || git commit -m "chore: daily summary $(date +'%Y-%m-%d')"
           git push
