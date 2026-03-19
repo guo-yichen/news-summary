@@ -6,10 +6,11 @@
 """
 
 import json
+import os
 import time
 from pathlib import Path
 
-_STATE_FILE = Path.home() / ".news-summary" / "state.json"
+_STATE_FILE = Path(os.environ["NEWS_SUMMARY_STATE"]) if "NEWS_SUMMARY_STATE" in os.environ else Path.home() / ".news-summary" / "state.json"
 _RETENTION_SECONDS = 7 * 86400  # 7 天
 
 

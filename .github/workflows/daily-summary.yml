@@ -1,0 +1,49 @@
+name: Daily Summary
+
+on:
+  schedule:
+    - cron: "0 1 * * *"  # UTC 01:00 = 北京时间 09:00
+  workflow_dispatch:       # 支持手动触发
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore dedup state cache
+        uses: actions/cache@v4
+        with:
+          path: state.json
+          key: news-summary-state
+          restore-keys: news-summary-state
+
+      - name: Create sources.yaml
+        env:
+          SOURCES_YAML: ${{ secrets.SOURCES_YAML }}
+        run: echo "$SOURCES_YAML" | base64 -d > sources.yaml
+
+      - name: Run summary
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPADATA_API_KEY: ${{ secrets.SUPADATA_API_KEY }}
+          NEWS_SUMMARY_STATE: ./state.json
+        run: python -m src.runner
+
+      - name: Commit summaries
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add summaries/
+          git diff --cached --quiet || git commit -m "chore: daily summary $(date +'%Y-%m-%d')"
+          git push
