@@ -125,7 +125,7 @@ def run(config_path: str = "sources.yaml", output_dir: str = "summaries", api_ke
     config = load_config(config_path)
     sources = config.get("sources", [])
     language = config.get("language", "zh")  # zh | en | bilingual
-    global_max_entries = config.get("max_entries", 3)
+    global_max_entries = config.get("max_entries", 20)
     global_max_age_days = config.get("max_age_days", 30)
 
     items = fetch_all(sources, global_max_entries=global_max_entries, global_max_age_days=global_max_age_days)
