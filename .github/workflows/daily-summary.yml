@@ -5,6 +5,9 @@ on:
     - cron: "0 1 * * *"  # UTC 01:00 = 北京时间 09:00
   workflow_dispatch:       # 支持手动触发
 
+permissions:
+  contents: write
+
 jobs:
   summarize:
     runs-on: ubuntu-latest
