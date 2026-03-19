@@ -69,4 +69,5 @@ jobs:
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git add summaries/
           git diff --cached --quiet || git commit -m "chore: daily summary $(date +'%Y-%m-%d')"
+          git pull --rebase origin main
           git push
