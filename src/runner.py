@@ -29,8 +29,12 @@ def load_sources(config_path: str = "sources.yaml") -> list[dict]:
     return load_config(config_path).get("sources", [])
 
 
-def fetch_all(sources: list[dict]) -> list[RawItem]:
-    """根据配置抓取所有源"""
+def fetch_all(sources: list[dict], global_max_entries: int = 3, global_max_age_days: int = 30) -> list[RawItem]:
+    """根据配置抓取所有源
+
+    global_max_entries: 全局每源最多条数上限（sources.yaml 里的单独设置不超过此值）
+    global_max_age_days: 全局文章最大年龄（天），超过此天数的文章跳过
+    """
     items: list[RawItem] = []
     for src in sources:
         stype = src.get("type", "rss")
@@ -41,8 +45,13 @@ def fetch_all(sources: list[dict]) -> list[RawItem]:
             if not url:
                 items.append(RawItem(source_name=name, source_type="rss", title="[配置错误]", content="缺少 url", link=None))
                 continue
-            max_entries = src.get("max_entries", 3)
-            items.extend(fetch_rss(url, name, max_entries))
+            items.extend(fetch_rss(
+                url, name,
+                max_entries=min(src.get("max_entries", 3), global_max_entries),
+                fetch_fulltext=src.get("fetch_fulltext", False),
+                fulltext_chars=src.get("fulltext_chars", 8000),
+                max_age_days=src.get("max_age_days", global_max_age_days),
+            ))
 
         elif stype == "email":
             if not all(src.get(k) for k in ("imap_server", "email", "password")):
@@ -95,7 +104,7 @@ def fetch_all(sources: list[dict]) -> list[RawItem]:
         elif stype == "follow_builders_podcasts":
             items.extend(fetch_follow_builders_podcasts(
                 max_episodes=src.get("max_episodes", 3),
-                transcript_chars=src.get("transcript_chars", 2000),
+                transcript_chars=src.get("transcript_chars", 15000),
             ))
 
         elif stype == "youtube_transcript":
@@ -116,11 +125,19 @@ def run(config_path: str = "sources.yaml", output_dir: str = "summaries", api_ke
     config = load_config(config_path)
     sources = config.get("sources", [])
     language = config.get("language", "zh")  # zh | en | bilingual
+    global_max_entries = config.get("max_entries", 3)
+    global_max_age_days = config.get("max_age_days", 30)
 
-    items = fetch_all(sources)
+    items = fetch_all(sources, global_max_entries=global_max_entries, global_max_age_days=global_max_age_days)
     print(f"共抓取 {len(items)} 条内容")
 
-    summary_text = summarize(items, api_key=api_key, language=language)
+    # 过滤错误项，避免污染摘要
+    valid_items = [i for i in items if not (i.title.startswith("[") and i.title.endswith("]"))]
+    error_items = [i for i in items if i not in valid_items]
+    if error_items:
+        print(f"[警告] 跳过 {len(error_items)} 个抓取失败的条目: {[i.source_name for i in error_items]}")
+
+    summary_text = summarize(valid_items, api_key=api_key, language=language)
 
     output_mode = os.environ.get("OUTPUT_MODE", "markdown")  # notion | markdown | both
     today = datetime.now().strftime("%Y-%m-%d")
@@ -149,6 +166,19 @@ def run(config_path: str = "sources.yaml", output_dir: str = "summaries", api_ke
                 with open(out_path, "w", encoding="utf-8") as f:
                     f.write(summary_text)
                 results.append(f"Markdown (fallback): {out_path}")
+
+    # 推送到 Telegram
+    tg_cfg = config.get("telegram", {})
+    tg_token = tg_cfg.get("bot_token") or os.environ.get("TELEGRAM_BOT_TOKEN")
+    tg_chat = tg_cfg.get("chat_id") or os.environ.get("TELEGRAM_CHAT_ID")
+    if tg_token and tg_chat:
+        try:
+            from src.telegram_notifier import send_to_telegram
+            n_msgs = send_to_telegram(summary_text, bot_token=tg_token, chat_id=str(tg_chat), date=today)
+            print(f"Telegram 已发送 {n_msgs} 条消息")
+            results.append(f"Telegram: {n_msgs} 条消息")
+        except Exception as e:
+            print(f"[警告] Telegram 推送失败: {e}")
 
     return "\n".join(results)
 

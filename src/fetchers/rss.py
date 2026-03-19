@@ -1,6 +1,7 @@
 """RSS 抓取：支持 Substack、博客、YouTube、播客、Twitter(Nitter/OpenRSS)"""
 
 import re
+import time as _time
 import feedparser
 from .base import RawItem
 from src import state as _state
@@ -32,11 +33,13 @@ def fetch_rss(
     max_entries: int = 3,
     fetch_fulltext: bool = False,
     fulltext_chars: int = 8000,
+    max_age_days: int = 30,
 ) -> list[RawItem]:
     """抓取 RSS feed，返回 RawItem 列表（跨天自动去重，7 天内不重复推送同一篇文章）
 
     fetch_fulltext: 是否用 trafilatura 抓取文章正文（默认关闭）
     fulltext_chars: 正文最大字符数，默认 8000
+    max_age_days: 超过此天数的文章直接跳过，默认 30 天
     """
     try:
         feed = feedparser.parse(url, request_headers={"User-Agent": "NewsSummary/1.0"})
@@ -45,6 +48,7 @@ def fetch_rss(
 
     st = _state.load()
     new_items = []
+    age_cutoff = _time.time() - max_age_days * 86400
 
     for entry in feed.entries:
         if len(new_items) >= max_entries:
@@ -54,6 +58,13 @@ def fetch_rss(
         summary = entry.get("summary", entry.get("description", ""))
         link = entry.get("link", "")
         published = entry.get("published", entry.get("updated", ""))
+
+        # 跳过超过 max_age_days 的文章
+        published_parsed = entry.get("published_parsed") or entry.get("updated_parsed")
+        if published_parsed:
+            pub_ts = _time.mktime(published_parsed)
+            if pub_ts < age_cutoff:
+                continue
 
         # 用链接去重；无链接的文章不去重
         if link and _state.is_seen(st, "seenArticles", link):
