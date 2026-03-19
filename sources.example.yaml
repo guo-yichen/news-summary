@@ -1,0 +1,44 @@
+# 复制为 sources.yaml 并填入你的信息源
+# 将 sources.yaml 加入 .gitignore，不要把私密信息提交到 Git
+
+sources:
+  # RSS 类（Substack、博客、YouTube、播客都支持 RSS）
+  - type: rss
+    name: "某 Substack"
+    url: "https://xxx.substack.com/feed"
+    max_entries: 3  # 每个源取最新几条，默认 3
+
+  - type: rss
+    name: "某博客"
+    url: "https://example.com/feed.xml"
+    max_entries: 5
+
+  # YouTube 频道 RSS 格式: https://www.youtube.com/feeds/videos.xml?channel_id=CHANNEL_ID
+  - type: rss
+    name: "某 YouTube 频道"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCxxxxxx"
+    max_entries: 3
+
+  # 播客 RSS
+  - type: rss
+    name: "某播客"
+    url: "https://feeds.example.com/podcast"
+    max_entries: 2
+
+  # Twitter/X：用 Nitter 或 OpenRSS 转成 RSS
+  # Nitter: https://nitter.net/username/rss
+  # OpenRSS: https://openrss.org/twitter.com/username
+  - type: rss
+    name: "某 Twitter 博主"
+    url: "https://nitter.net/username/rss"
+    max_entries: 5
+
+  # Email 订阅（需要 IMAP 配置）
+  # - type: email
+  #   name: "某 Newsletter"
+  #   imap_server: "imap.gmail.com"
+  #   email: "your@gmail.com"
+  #   password: "your-app-password"  # Gmail 用应用专用密码
+  #   folder: "INBOX"
+  #   search_from: "newsletter@example.com"  # 可选：只取特定发件人
+  #   max_emails: 5
