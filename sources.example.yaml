@@ -1,6 +1,9 @@
 # 复制为 sources.yaml 并填入你的信息源
 # 将 sources.yaml 加入 .gitignore，不要把私密信息提交到 Git
 
+# 输出语言：zh（中文）| en（English）| bilingual（中英双语交错）
+language: zh
+
 sources:
   # RSS 类（Substack、博客、YouTube、播客都支持 RSS）
   - type: rss
@@ -42,3 +45,26 @@ sources:
   #   folder: "INBOX"
   #   search_from: "newsletter@example.com"  # 可选：只取特定发件人
   #   max_emails: 5
+
+  # ── YouTube 完整字幕（需要 SUPADATA_API_KEY，免费 100 credits/月）─────────
+  # 注册: https://dash.supadata.ai
+  # 每次运行取最近 lookback_hours 内最老的未看过一集，自动去重
+  - type: youtube_transcript
+    name: "Latent Space Podcast"
+    channel_handle: "@latentspacepod"  # 频道 handle（二选一）
+    # playlist_id: "PLxxxxxx"          # 或播放列表 ID
+    lookback_hours: 72                 # 可选，默认 72h
+
+  # ── follow-builders 中央 Feed（无需 API key，直接拉 GitHub）──────────────
+  # 来源: https://github.com/zarazhangrui/follow-builders
+  # 包含 Karpathy、Sam Altman 等 25 位 AI 大佬的推文（24h 内）
+
+  - type: follow_builders_x
+    name: "AI Builders Twitter"
+    max_tweets_per_person: 3   # 每人最多取几条推文，默认 3
+
+  # 包含 Latent Space、No Priors 等 5 个顶级 AI 播客（72h 内，含字幕）
+  - type: follow_builders_podcasts
+    name: "AI Podcasts"
+    max_episodes: 2            # 最多取几集，默认 3
+    transcript_chars: 2000     # 每集字幕截取前多少字，默认 2000
