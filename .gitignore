@@ -5,3 +5,4 @@ twitter_cookies.json
 gmail_credentials.json
 summaries/
 .env
+.claude/
