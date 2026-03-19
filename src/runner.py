@@ -5,7 +5,13 @@ from pathlib import Path
 
 import yaml
 
-from src.fetchers import fetch_rss, fetch_email, fetch_follow_builders_x, fetch_follow_builders_podcasts, fetch_youtube_transcript, RawItem
+from src.fetchers import (
+    fetch_rss, fetch_email, fetch_gmail,
+    fetch_youtube, fetch_youtube_transcript,
+    fetch_twitter,
+    fetch_follow_builders_x, fetch_follow_builders_podcasts,
+    RawItem,
+)
 from src.summarize import summarize
 
 
@@ -53,6 +59,33 @@ def fetch_all(sources: list[dict]) -> list[RawItem]:
                     max_emails=src.get("max_emails", 5),
                 )
             )
+
+        elif stype == "youtube":
+            url = src.get("url")
+            if not url:
+                items.append(RawItem(source_name=name, source_type="youtube", title="[配置错误]", content="缺少 url", link=None))
+                continue
+            items.extend(fetch_youtube(url, name,
+                max_entries=src.get("max_entries", 3),
+                languages=src.get("languages", ["zh-Hans", "zh", "en"]),
+            ))
+
+        elif stype == "twitter":
+            cookies_path = src.get("cookies_path") or os.environ.get("TWITTER_COOKIES_PATH", "twitter_cookies.json")
+            items.extend(fetch_twitter(
+                cookies_path=cookies_path,
+                source_name=name,
+                usernames=src.get("usernames", []),
+                max_tweets=src.get("max_tweets", 20),
+            ))
+
+        elif stype == "gmail":
+            items.extend(fetch_gmail(
+                source_name=name,
+                credentials_json=src.get("credentials_json"),
+                query=src.get("query", "is:unread"),
+                max_emails=src.get("max_emails", 5),
+            ))
 
         elif stype == "follow_builders_x":
             items.extend(fetch_follow_builders_x(

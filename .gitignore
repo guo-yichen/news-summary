@@ -1,3 +1,7 @@
 __pycache__/
 *.pyc
 sources.yaml
+twitter_cookies.json
+gmail_credentials.json
+summaries/
+.env

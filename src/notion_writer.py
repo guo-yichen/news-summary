@@ -30,9 +30,23 @@ def _split_text(text: str, max_len: int = 2000) -> list[str]:
 
 
 def _make_rich_text(text: str) -> list[dict]:
-    """构建 Notion rich_text 对象，处理 2000 字符限制"""
-    chunks = _split_text(text, max_len=2000)
-    return [{"type": "text", "text": {"content": chunk}} for chunk in chunks]
+    """构建 Notion rich_text 对象，支持 **bold**，处理 2000 字符限制"""
+    import re
+    parts = []
+    for segment in re.split(r"(\*\*[^*]+\*\*)", text[:2000]):
+        if not segment:
+            continue
+        if segment.startswith("**") and segment.endswith("**"):
+            parts.append({
+                "type": "text",
+                "text": {"content": segment[2:-2]},
+                "annotations": {"bold": True},
+            })
+        else:
+            # split_text handles the 2000-char limit per chunk
+            for chunk in _split_text(segment, max_len=2000):
+                parts.append({"type": "text", "text": {"content": chunk}})
+    return parts or [{"type": "text", "text": {"content": ""}}]
 
 
 def _make_heading_block(text: str, level: int = 2) -> dict:
@@ -46,18 +60,25 @@ def _make_heading_block(text: str, level: int = 2) -> dict:
 
 
 def _make_paragraph_blocks(text: str) -> list[dict]:
-    """将长文本拆成多个 paragraph block"""
+    """将长文本拆成多个 paragraph block，支持 bold 格式"""
     chunks = _split_text(text, max_len=2000)
     return [
         {
             "object": "block",
             "type": "paragraph",
-            "paragraph": {
-                "rich_text": [{"type": "text", "text": {"content": chunk}}],
-            },
+            "paragraph": {"rich_text": _make_rich_text(chunk)},
         }
         for chunk in chunks
     ]
+
+
+def _make_bullet_block(text: str) -> dict:
+    """构建 bulleted_list_item block"""
+    return {
+        "object": "block",
+        "type": "bulleted_list_item",
+        "bulleted_list_item": {"rich_text": _make_rich_text(text[:2000])},
+    }
 
 
 def _make_divider() -> dict:
@@ -143,6 +164,14 @@ def _parse_summary_to_blocks(summary_text: str) -> list[dict]:
                 blocks.extend(_make_paragraph_blocks(text))
                 current_paragraph = []
             blocks.append(_make_heading_block(stripped[2:], level=1))
+
+        elif stripped.startswith("- ") or stripped.startswith("* "):
+            # Flush any buffered paragraph first
+            if current_paragraph:
+                text = "\n".join(current_paragraph)
+                blocks.extend(_make_paragraph_blocks(text))
+                current_paragraph = []
+            blocks.append(_make_bullet_block(stripped[2:]))
 
         elif stripped == "---":
             if current_paragraph:

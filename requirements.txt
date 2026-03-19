@@ -4,5 +4,15 @@ PyYAML>=6.0.0
 trafilatura>=1.6.0
 notion-client>=2.0.0
 
-# Email (IMAP) - optional, only if you use email sources
+# YouTube transcript (via RSS + youtube-transcript-api)
+youtube-transcript-api>=0.6.0
+
+# Twitter (Playwright browser automation)
+playwright>=1.40.0
+
+# Gmail API - optional
+google-api-python-client>=2.100.0
+google-auth>=2.23.0
+
+# Email (IMAP) - optional
 imapclient>=2.3.0
