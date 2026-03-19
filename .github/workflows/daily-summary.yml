@@ -31,7 +31,7 @@ jobs:
       - name: Create sources.yaml
         env:
           SOURCES_YAML: ${{ secrets.SOURCES_YAML }}
-        run: echo "$SOURCES_YAML" | base64 -d > sources.yaml
+        run: echo "$SOURCES_YAML" | tr -d '\n' | base64 -d > sources.yaml
 
       - name: Run summary
         env:
