@@ -1,6 +1,8 @@
 anthropic>=0.39.0
 feedparser>=6.0.0
 PyYAML>=6.0.0
+trafilatura>=1.6.0
+notion-client>=2.0.0
 
 # Email (IMAP) - optional, only if you use email sources
 imapclient>=2.3.0

@@ -77,7 +77,7 @@ def fetch_all(sources: list[dict]) -> list[RawItem]:
 
 
 def run(config_path: str = "sources.yaml", output_dir: str = "summaries", api_key: str | None = None) -> str:
-    """完整流程：抓取 → 总结 → 保存"""
+    """完整流程：抓取 → 总结 → 保存（Notion 或 Markdown）"""
     from datetime import datetime
 
     config = load_config(config_path)
@@ -85,19 +85,39 @@ def run(config_path: str = "sources.yaml", output_dir: str = "summaries", api_ke
     language = config.get("language", "zh")  # zh | en | bilingual
 
     items = fetch_all(sources)
+    print(f"共抓取 {len(items)} 条内容")
+
     summary_text = summarize(items, api_key=api_key, language=language)
 
-    # 保存到文件
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    output_mode = os.environ.get("OUTPUT_MODE", "markdown")  # notion | markdown | both
     today = datetime.now().strftime("%Y-%m-%d")
-    out_path = Path(output_dir) / f"{today}.md"
+    results = []
 
-    title_map = {"zh": "每日摘要", "en": "Daily Summary", "bilingual": "每日摘要 / Daily Summary"}
-    title = title_map.get(language, "每日摘要")
-    with open(out_path, "w", encoding="utf-8") as f:
-        f.write(f"# {title} {today}\n\n")
-        f.write(summary_text)
-    return str(out_path)
+    if output_mode in ("markdown", "both"):
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        out_path = Path(output_dir) / f"{today}.md"
+        title_map = {"zh": "每日摘要", "en": "Daily Summary", "bilingual": "每日摘要 / Daily Summary"}
+        title = title_map.get(language, "每日摘要")
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(f"# {title} {today}\n\n")
+            f.write(summary_text)
+        results.append(f"Markdown: {out_path}")
+
+    if output_mode in ("notion", "both"):
+        from src.notion_writer import write_to_notion
+        try:
+            notion_url = write_to_notion(summary_text)
+            results.append(f"Notion: {notion_url}")
+        except Exception as e:
+            print(f"Notion 写入失败: {e}")
+            if output_mode == "notion":  # fallback
+                Path(output_dir).mkdir(parents=True, exist_ok=True)
+                out_path = Path(output_dir) / f"{today}.md"
+                with open(out_path, "w", encoding="utf-8") as f:
+                    f.write(summary_text)
+                results.append(f"Markdown (fallback): {out_path}")
+
+    return "\n".join(results)
 
 
 if __name__ == "__main__":
@@ -107,4 +127,4 @@ if __name__ == "__main__":
         exit(1)
 
     out = run(api_key=api_key)
-    print(f"摘要已保存到: {out}")
+    print(f"完成！\n{out}")
