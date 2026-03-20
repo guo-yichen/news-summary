@@ -25,16 +25,16 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Install Playwright browsers
-        if: ${{ env.TWITTER_COOKIES_B64 != '' }}
+        if: ${{ env.TWITTER_COOKIES != '' }}
         env:
-          TWITTER_COOKIES_B64: ${{ secrets.TWITTER_COOKIES_B64 }}
+          TWITTER_COOKIES: ${{ secrets.TWITTER_COOKIES }}
         run: playwright install chromium
 
       - name: Restore Twitter cookies
-        if: ${{ env.TWITTER_COOKIES_B64 != '' }}
+        if: ${{ env.TWITTER_COOKIES != '' }}
         env:
-          TWITTER_COOKIES_B64: ${{ secrets.TWITTER_COOKIES_B64 }}
-        run: echo "$TWITTER_COOKIES_B64" | base64 -d > twitter_cookies.json
+          TWITTER_COOKIES: ${{ secrets.TWITTER_COOKIES }}
+        run: echo "$TWITTER_COOKIES" | base64 -d > twitter_cookies.json
 
       - name: Restore dedup state cache
         uses: actions/cache@v4
