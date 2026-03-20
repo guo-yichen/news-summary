@@ -46,6 +46,17 @@ def fetch_twitter(
     with open(cookies_file, encoding="utf-8") as f:
         cookies = json.load(f)
 
+    # Playwright 只接受 Strict|Lax|None，Cookie-Editor 导出的值需要规范化
+    _same_site_map = {
+        "no_restriction": "None",
+        "lax": "Lax",
+        "strict": "Strict",
+        "unspecified": "Lax",
+    }
+    for c in cookies:
+        ss = c.get("sameSite") or ""
+        c["sameSite"] = _same_site_map.get(ss.lower(), "Lax")
+
     items: list[RawItem] = []
 
     with sync_playwright() as p:
@@ -78,8 +89,8 @@ def _scrape_timeline(context, source_name: str, max_tweets: int) -> list[RawItem
     items = []
 
     try:
-        page.goto("https://x.com/home", wait_until="networkidle", timeout=30000)
-        page.wait_for_timeout(3000)  # 等待动态内容加载
+        page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=60000)
+        page.wait_for_timeout(5000)  # 等待动态内容加载
 
         items = _extract_tweets_from_page(page, source_name, max_tweets)
     except Exception as e:
@@ -105,8 +116,8 @@ def _scrape_user_tweets(context, username: str, source_name: str, max_tweets: in
     url = f"https://x.com/{username}"
 
     try:
-        page.goto(url, wait_until="networkidle", timeout=30000)
-        page.wait_for_timeout(3000)
+        page.goto(url, wait_until="domcontentloaded", timeout=60000)
+        page.wait_for_timeout(5000)
 
         items = _extract_tweets_from_page(page, f"{source_name}/{username}", max_tweets)
     except Exception as e:
