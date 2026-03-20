@@ -39,6 +39,7 @@ def fetch_all(sources: list[dict], global_max_entries: int = 3, global_max_age_d
     for src in sources:
         stype = src.get("type", "rss")
         name = src.get("name", "未命名")
+        before = len(items)
 
         if stype == "rss":
             url = src.get("url")
@@ -115,6 +116,16 @@ def fetch_all(sources: list[dict], global_max_entries: int = 3, global_max_age_d
                 lookback_hours=src.get("lookback_hours", 72),
             ))
 
+        # If this source added nothing new, insert a "no update" placeholder
+        if len(items) == before and not (stype in ("email", "youtube", "twitter", "gmail") and not src.get("url")):
+            items.append(RawItem(
+                source_name=name,
+                source_type=stype,
+                title="暂无更新",
+                content="该来源今日无新内容（已抓取但无符合条件的条目）",
+                link=None,
+            ))
+
     return items
 
 
@@ -125,7 +136,7 @@ def run(config_path: str = "sources.yaml", output_dir: str = "summaries", api_ke
     config = load_config(config_path)
     sources = config.get("sources", [])
     language = config.get("language", "zh")  # zh | en | bilingual
-    global_max_entries = config.get("max_entries", 20)
+    global_max_entries = config.get("max_entries", 3)
     global_max_age_days = config.get("max_age_days", 30)
 
     items = fetch_all(sources, global_max_entries=global_max_entries, global_max_age_days=global_max_age_days)
