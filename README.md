@@ -1,39 +1,208 @@
-# news-summary
+# News Summary — AI 每日信息简报
 
-每天自动聚合你关注的信息源，用 AI 生成一份结构化简报，写入 Notion。
+**[English](#english) | [中文](#chinese)**
 
-## 它每天做什么？
+---
 
-```
-每天早上 9:00（北京时间），GitHub Actions 自动触发：
+<a name="english"></a>
+# 📰 News Summary — Daily AI Digest
 
-1. 抓取内容
-   ├── Substack / 博客 / 播客 → 通过 RSS 拉取最新文章
-   ├── YouTube → RSS 获取新视频 + 自动下载字幕全文
-   ├── Twitter/X → Playwright 登录你的账号，抓取 timeline 或指定博主的推文
-   └── Email Newsletter → 通过 IMAP 或 Gmail API 读取订阅邮件
+An automated pipeline that aggregates your personal information sources every day, uses Claude AI to generate a structured digest, and delivers it to your inbox and Notion — all running on GitHub Actions for free.
 
-2. AI 总结
-   ├── 把所有抓到的内容发给 AI（Gemini 或 Claude）
-   └── 生成结构化摘要：
-       ├── 今日最重要的 5 条信息（跨所有来源）
-       ├── 每个来源的简短摘要（2-3 句）
-       └── 值得深入阅读的内容推荐（附链接）
+## ✨ Features
 
-3. 写入 Notion
-   └── 在你的 Notion 数据库里创建一个新页面：
-       📅 2025-03-18 信息简报
-```
+| Feature | Description |
+|---------|-------------|
+| **30+ source types** | RSS, Substack, blogs, podcasts, YouTube transcripts, Twitter/X timeline, newsletters |
+| **Smart deduplication** | Tracks seen articles across days — no repeats |
+| **Age filtering** | Skips articles older than 30 days by default |
+| **Claude AI summaries** | Structured digest with highlights, bullet points, and source-by-source breakdown |
+| **Multilingual output** | Chinese (`zh`), English (`en`), or bilingual (`bilingual`) |
+| **Notion integration** | Creates a new page daily with clickable links |
+| **Email delivery** | Sends HTML email with clickable links to multiple recipients |
+| **Telegram notifications** | Push digest to Telegram on completion |
+| **GitHub Actions** | Runs automatically every day at 9:00 AM Beijing time — no server needed |
+| **No updates? Still shows** | Sources with no new content are listed as "no updates today" so you know they were checked |
 
-打开 Notion 就能看到今天的简报。想深入了解某条内容，把摘要贴回 Claude 追问即可。
+## 🗂️ Supported Source Types
 
-## 快速开始
+| Type | Examples |
+|------|---------|
+| `rss` | Substack, personal blogs, news sites, podcasts |
+| `youtube_transcript` | YouTube channels — fetches full transcripts via Supadata API |
+| `follow_builders_x` | Curated AI builders Twitter feed (no API key needed) |
+| `follow_builders_podcasts` | Top AI podcasts with transcripts (no API key needed) |
+| `twitter` | Your personal Twitter/X timeline via Playwright + cookies |
+| `email` | Email newsletters via IMAP |
+| `gmail` | Gmail via OAuth2 API |
 
-### 1. 安装依赖
+## 🚀 Quick Start
+
+### 1. Clone and install
 
 ```bash
+git clone https://github.com/guo-yichen/news-summary.git
+cd news-summary
 pip install -r requirements.txt
-playwright install chromium  # 只在需要 Twitter 抓取时安装
+```
+
+### 2. Configure sources
+
+```bash
+cp sources.example.yaml sources.yaml
+```
+
+Edit `sources.yaml` with your sources. See `sources.example.yaml` for all options.
+
+Set the output language at the top:
+```yaml
+language: zh        # zh | en | bilingual
+```
+
+### 3. Set environment variables
+
+```bash
+export ANTHROPIC_API_KEY=your-claude-api-key
+
+# Notion (optional)
+export NOTION_TOKEN=your-notion-token
+export NOTION_DATABASE_ID=your-database-id
+
+# Email (optional)
+export EMAIL_USER=you@gmail.com
+export EMAIL_PASSWORD=your-app-password   # Gmail app-specific password
+export EMAIL_TO=you@gmail.com,other@example.com
+
+# Telegram (optional)
+export TELEGRAM_BOT_TOKEN=your-bot-token
+export TELEGRAM_CHAT_ID=your-chat-id
+
+# Output mode
+export OUTPUT_MODE=both    # notion | markdown | both
+```
+
+### 4. Run
+
+```bash
+python -m src.runner
+```
+
+Output is saved to `summaries/YYYY-MM-DD.md` and/or written to Notion.
+
+### 5. Twitter/X timeline (optional)
+
+To include your personal Twitter timeline:
+
+1. Install [Cookie-Editor](https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm) browser extension
+2. Log in to x.com
+3. Click Cookie-Editor → Export → Export as JSON (copies to clipboard)
+4. Run `pbpaste > twitter_cookies.json` in your terminal
+
+Then add to `sources.yaml`:
+```yaml
+- type: twitter
+  name: "My Twitter Timeline"
+  max_tweets: 30
+```
+
+## ⚙️ GitHub Actions Setup
+
+Fork this repo, then go to **Settings → Secrets and variables → Actions** and add:
+
+| Secret | Description |
+|--------|-------------|
+| `SOURCES_YAML` | Base64-encoded content of your `sources.yaml` |
+| `ANTHROPIC_API_KEY` | Claude API key |
+| `NOTION_TOKEN` | Notion integration token |
+| `NOTION_DATABASE_ID` | Notion database ID |
+| `EMAIL_USER` | Gmail address for sending |
+| `EMAIL_PASSWORD` | Gmail app-specific password |
+| `EMAIL_TO` | Recipient email(s), comma-separated |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token (optional) |
+| `TELEGRAM_CHAT_ID` | Telegram chat ID (optional) |
+| `SUPADATA_API_KEY` | Supadata API key for YouTube transcripts (optional) |
+| `TWITTER_COOKIES` | Base64-encoded `twitter_cookies.json` (optional) |
+
+Generate base64 for `sources.yaml`:
+```bash
+base64 -i sources.yaml | tr -d '\n' | gh secret set SOURCES_YAML
+```
+
+The workflow runs daily at **01:00 UTC (09:00 Beijing)**. You can also trigger it manually from the Actions tab.
+
+## 🔧 Notion Setup
+
+1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations) → New Integration → copy the token
+2. Create a Notion database with a `title` property
+3. Open the database → `...` → Connections → add your integration
+4. Copy the database ID from the URL (the 32-character string after `notion.so/`)
+
+## 📁 Project Structure
+
+```
+├── src/
+│   ├── runner.py                  # Main entry: fetch → summarize → save
+│   ├── summarize.py               # Claude AI summarization
+│   ├── notion_writer.py           # Notion page writer
+│   ├── email_sender.py            # Gmail SMTP sender
+│   ├── telegram_notifier.py       # Telegram push
+│   ├── state.py                   # Cross-day deduplication state
+│   └── fetchers/
+│       ├── base.py                # RawItem data structure
+│       ├── rss.py                 # RSS fetcher
+│       ├── follow_builders.py     # follow-builders Twitter + podcast feeds
+│       ├── youtube_transcript.py  # YouTube transcript via Supadata
+│       ├── twitter.py             # Twitter timeline via Playwright
+│       ├── twitter_login.py       # Twitter login helper
+│       └── email_fetcher.py       # IMAP / Gmail fetcher
+├── .github/workflows/
+│   └── daily-summary.yml          # GitHub Actions workflow
+├── sources.example.yaml           # Source configuration template
+└── requirements.txt
+```
+
+---
+
+<a name="chinese"></a>
+# 📰 News Summary — AI 每日信息简报
+
+每天自动聚合你关注的信息源，用 Claude AI 生成结构化简报，发送到你的邮箱和 Notion — 完全运行在 GitHub Actions 上，免费，无需服务器。
+
+## ✨ 功能特性
+
+| 功能 | 说明 |
+|------|------|
+| **30+ 种信息源** | RSS、Substack、博客、播客、YouTube 字幕、Twitter/X 时间线、Newsletter |
+| **跨日去重** | 追踪已读文章，不重复推送 |
+| **时效过滤** | 默认跳过 30 天前的旧文章 |
+| **Claude AI 总结** | 结构化简报：今日要点 + bullet points + 来源详情 |
+| **多语言输出** | 中文（`zh`）、英文（`en`）、中英双语（`bilingual`）|
+| **Notion 集成** | 每天在 Notion 数据库创建新页面，链接可点击 |
+| **邮件推送** | 发送 HTML 格式邮件，链接可点击，支持多个收件人 |
+| **Telegram 通知** | 生成完成后推送到 Telegram |
+| **GitHub Actions** | 每天北京时间 9:00 自动运行，无需服务器 |
+| **无更新也显示** | 没有新内容的来源会标注「今日无新内容」，让你确认它被检查过 |
+
+## 🗂️ 支持的信息源类型
+
+| 类型 | 示例 |
+|------|------|
+| `rss` | Substack、博客、新闻网站、播客 |
+| `youtube_transcript` | YouTube 频道（通过 Supadata API 获取完整字幕）|
+| `follow_builders_x` | AI 大佬 Twitter 精选 Feed（无需 API key）|
+| `follow_builders_podcasts` | 顶级 AI 播客字幕（无需 API key）|
+| `twitter` | 你的个人 Twitter/X 时间线（Playwright + cookies）|
+| `email` | 邮件 Newsletter（IMAP）|
+| `gmail` | Gmail（OAuth2 API）|
+
+## 🚀 快速开始
+
+### 1. 克隆并安装依赖
+
+```bash
+git clone https://github.com/guo-yichen/news-summary.git
+cd news-summary
+pip install -r requirements.txt
 ```
 
 ### 2. 配置信息源
@@ -42,94 +211,111 @@ playwright install chromium  # 只在需要 Twitter 抓取时安装
 cp sources.example.yaml sources.yaml
 ```
 
-编辑 `sources.yaml`，填入你要关注的信息源。支持的类型：
+编辑 `sources.yaml`，填入你要关注的信息源。参考 `sources.example.yaml` 查看所有配置选项。
 
-| 类型 | 说明 |
-|------|------|
-| `rss` | Substack、博客、播客等任何 RSS 源 |
-| `youtube` | YouTube 频道（自动获取视频字幕） |
-| `twitter` | Twitter/X（Playwright 登录抓取） |
-| `email` | 邮件订阅（IMAP） |
-| `gmail` | Gmail API（需要 OAuth2 凭证） |
+在文件顶部设置输出语言：
+```yaml
+language: zh        # zh | en | bilingual
+```
 
 ### 3. 设置环境变量
 
 ```bash
-# AI 模型（二选一）
-export AI_PROVIDER=gemini          # 或 claude
-export GEMINI_API_KEY=your-key     # 用 Gemini 时设置
-export ANTHROPIC_API_KEY=your-key  # 用 Claude 时设置
+export ANTHROPIC_API_KEY=你的-claude-api-key
 
-# Notion
-export NOTION_TOKEN=your-token
-export NOTION_DATABASE_ID=your-db-id
+# Notion（可选）
+export NOTION_TOKEN=你的-notion-token
+export NOTION_DATABASE_ID=你的-数据库-id
+
+# 邮件（可选）
+export EMAIL_USER=you@gmail.com
+export EMAIL_PASSWORD=你的-应用专用密码   # Gmail 应用专用密码
+export EMAIL_TO=you@gmail.com,other@example.com
+
+# Telegram（可选）
+export TELEGRAM_BOT_TOKEN=你的-bot-token
+export TELEGRAM_CHAT_ID=你的-chat-id
 
 # 输出模式
-export OUTPUT_MODE=notion          # notion / markdown / both
+export OUTPUT_MODE=both    # notion | markdown | both
 ```
 
-### 4. Twitter 登录（可选）
-
-首次使用需要手动登录一次，保存 cookies：
-
-```bash
-python -m src.fetchers.twitter_login
-```
-
-会打开 Chrome 浏览器，手动登录 Twitter 后回到终端按 Enter。
-
-### 5. 运行
+### 4. 运行
 
 ```bash
 python -m src.runner
 ```
 
-## GitHub Actions 自动化
+结果保存在 `summaries/YYYY-MM-DD.md`，同时写入 Notion（如已配置）。
 
-推送到 GitHub 后，在仓库 **Settings → Secrets and variables → Actions** 中添加：
+### 5. Twitter/X 时间线（可选）
+
+如需抓取你的个人 Twitter 时间线：
+
+1. 安装浏览器扩展 [Cookie-Editor](https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm)
+2. 登录 x.com
+3. 点击 Cookie-Editor → Export → Export as JSON（自动复制到剪贴板）
+4. 在终端运行 `pbpaste > twitter_cookies.json`
+
+然后在 `sources.yaml` 里添加：
+```yaml
+- type: twitter
+  name: "我的 Twitter 时间线"
+  max_tweets: 30
+```
+
+## ⚙️ GitHub Actions 自动化
+
+Fork 本仓库，然后在 **Settings → Secrets and variables → Actions** 中添加以下 Secrets：
 
 | Secret | 说明 |
 |--------|------|
 | `SOURCES_YAML` | `sources.yaml` 的 base64 编码内容 |
-| `GEMINI_API_KEY` | Gemini API Key |
-| `ANTHROPIC_API_KEY` | Claude API Key（如果用 Claude） |
+| `ANTHROPIC_API_KEY` | Claude API Key |
 | `NOTION_TOKEN` | Notion Integration Token |
 | `NOTION_DATABASE_ID` | Notion 数据库 ID |
-| `TWITTER_COOKIES_B64` | `twitter_cookies.json` 的 base64 编码（可选） |
+| `EMAIL_USER` | 发件 Gmail 地址 |
+| `EMAIL_PASSWORD` | Gmail 应用专用密码 |
+| `EMAIL_TO` | 收件地址，多个用逗号分隔 |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token（可选）|
+| `TELEGRAM_CHAT_ID` | Telegram chat ID（可选）|
+| `SUPADATA_API_KEY` | Supadata API Key，用于 YouTube 字幕（可选）|
+| `TWITTER_COOKIES` | `twitter_cookies.json` 的 base64 编码（可选）|
 
-生成 base64：
-
+生成 `sources.yaml` 的 base64：
 ```bash
-base64 -i sources.yaml          # macOS
-base64 sources.yaml              # Linux
-base64 -i twitter_cookies.json   # Twitter cookies
+base64 -i sources.yaml | tr -d '\n' | gh secret set SOURCES_YAML
 ```
 
-Workflow 每天 UTC 01:00（北京时间 09:00）自动运行，也可以在 Actions 页面手动触发。
+Workflow 每天 **UTC 01:00（北京时间 09:00）** 自动运行，也可在 Actions 页面手动触发。
 
-## Notion 设置
+## 🔧 Notion 配置
 
-1. 前往 [Notion Integrations](https://www.notion.so/my-integrations) 创建一个 Integration，获取 Token
-2. 创建一个 Notion 数据库（表格），确保有 `title` 属性
-3. 在数据库页面点击 `...` → `Connections` → 添加你的 Integration
-4. 复制数据库 ID（URL 中 `notion.so/` 后面那串 32 位字符）
+1. 前往 [notion.so/my-integrations](https://www.notion.so/my-integrations) → 新建 Integration → 复制 token
+2. 创建一个 Notion 数据库，确保有 `title` 属性
+3. 打开数据库 → `...` → Connections → 添加你的 Integration
+4. 从 URL 中复制数据库 ID（`notion.so/` 后面的 32 位字符串）
 
-## 项目结构
+## 📁 项目结构
 
 ```
 ├── src/
-│   ├── runner.py              # 主入口：抓取 → 总结 → 保存
-│   ├── summarize.py           # AI 总结（Claude / Gemini）
-│   ├── notion_writer.py       # Notion 写入
+│   ├── runner.py                  # 主入口：抓取 → 总结 → 保存
+│   ├── summarize.py               # Claude AI 总结
+│   ├── notion_writer.py           # Notion 页面写入
+│   ├── email_sender.py            # Gmail SMTP 发送
+│   ├── telegram_notifier.py       # Telegram 推送
+│   ├── state.py                   # 跨日去重状态管理
 │   └── fetchers/
-│       ├── base.py            # RawItem 数据结构
-│       ├── rss.py             # RSS 抓取
-│       ├── youtube.py         # YouTube 字幕抓取
-│       ├── twitter.py         # Twitter Playwright 抓取
-│       ├── twitter_login.py   # Twitter 登录辅助脚本
-│       └── email_fetcher.py   # IMAP / Gmail API 邮件抓取
+│       ├── base.py                # RawItem 数据结构
+│       ├── rss.py                 # RSS 抓取
+│       ├── follow_builders.py     # follow-builders Twitter + 播客 Feed
+│       ├── youtube_transcript.py  # YouTube 字幕（Supadata）
+│       ├── twitter.py             # Twitter 时间线（Playwright）
+│       ├── twitter_login.py       # Twitter 登录辅助
+│       └── email_fetcher.py       # IMAP / Gmail 抓取
 ├── .github/workflows/
-│   └── daily-summary.yml      # GitHub Actions 定时任务
-├── sources.example.yaml       # 信息源配置模板
+│   └── daily-summary.yml          # GitHub Actions 定时任务
+├── sources.example.yaml           # 信息源配置模板
 └── requirements.txt
 ```
