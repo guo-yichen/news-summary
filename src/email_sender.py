@@ -20,10 +20,13 @@ def send_email(
     }
     subject = title_map.get(language, f"每日 AI 摘要 {date}")
 
+    # 支持逗号分隔的多个收件人
+    recipients = [addr.strip() for addr in to_address.split(",") if addr.strip()]
+
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     msg["From"] = smtp_user
-    msg["To"] = to_address
+    msg["To"] = ", ".join(recipients)
 
     # 纯文本版本
     msg.attach(MIMEText(summary_text, "plain", "utf-8"))
@@ -43,4 +46,4 @@ def send_email(
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(smtp_user, smtp_password)
-        server.sendmail(smtp_user, to_address, msg.as_bytes())
+        server.sendmail(smtp_user, recipients, msg.as_bytes())
