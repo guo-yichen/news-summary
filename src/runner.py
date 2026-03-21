@@ -191,6 +191,20 @@ def run(config_path: str = "sources.yaml", output_dir: str = "summaries", api_ke
         except Exception as e:
             print(f"[警告] Telegram 推送失败: {e}")
 
+    # 发送邮件
+    email_user = os.environ.get("EMAIL_USER")
+    email_password = os.environ.get("EMAIL_PASSWORD")
+    email_to = os.environ.get("EMAIL_TO") or email_user
+    if email_user and email_password:
+        try:
+            from src.email_sender import send_email
+            send_email(summary_text, date=today, smtp_user=email_user,
+                       smtp_password=email_password, to_address=email_to, language=language)
+            print(f"邮件已发送至 {email_to}")
+            results.append(f"Email: {email_to}")
+        except Exception as e:
+            print(f"[警告] 邮件发送失败: {e}")
+
     return "\n".join(results)
 
 
