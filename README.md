@@ -87,7 +87,10 @@ export OUTPUT_MODE=both    # notion | markdown | both
 python -m src.runner
 ```
 
-Output is saved to `summaries/YYYY-MM-DD.md` and/or written to Notion.
+Depending on your configuration, the digest will be:
+- Saved to `summaries/YYYY-MM-DD.md` (when `OUTPUT_MODE=markdown` or `both`)
+- Written to Notion as a new page (when `OUTPUT_MODE=notion` or `both`)
+- Sent to your inbox as an HTML email with clickable links (when `EMAIL_USER` + `EMAIL_PASSWORD` are set)
 
 ### 5. Twitter/X timeline (optional)
 
@@ -250,7 +253,10 @@ export OUTPUT_MODE=both    # notion | markdown | both
 python -m src.runner
 ```
 
-结果保存在 `summaries/YYYY-MM-DD.md`，同时写入 Notion（如已配置）。
+根据你的配置，生成的简报会：
+- 保存为 `summaries/YYYY-MM-DD.md`（`OUTPUT_MODE=markdown` 或 `both` 时）
+- 写入 Notion 数据库（`OUTPUT_MODE=notion` 或 `both` 时）
+- 以 HTML 格式发送到邮箱，链接可点击（配置了 `EMAIL_USER` + `EMAIL_PASSWORD` 时）
 
 ### 5. Twitter/X 时间线（可选）
 
