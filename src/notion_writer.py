@@ -30,10 +30,12 @@ def _split_text(text: str, max_len: int = 2000) -> list[str]:
 
 
 def _make_rich_text(text: str) -> list[dict]:
-    """构建 Notion rich_text 对象，支持 **bold**，处理 2000 字符限制"""
+    """构建 Notion rich_text 对象，支持 **bold** 和 [text](url) 链接"""
     import re
     parts = []
-    for segment in re.split(r"(\*\*[^*]+\*\*)", text[:2000]):
+    # 先按 bold 和 markdown link 拆分
+    pattern = r"(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))"
+    for segment in re.split(pattern, text[:2000]):
         if not segment:
             continue
         if segment.startswith("**") and segment.endswith("**"):
@@ -42,8 +44,16 @@ def _make_rich_text(text: str) -> list[dict]:
                 "text": {"content": segment[2:-2]},
                 "annotations": {"bold": True},
             })
+        elif segment.startswith("["):
+            m = re.match(r"\[([^\]]+)\]\(([^)]+)\)", segment)
+            if m:
+                parts.append({
+                    "type": "text",
+                    "text": {"content": m.group(1), "link": {"url": m.group(2)}},
+                })
+            else:
+                parts.append({"type": "text", "text": {"content": segment}})
         else:
-            # split_text handles the 2000-char limit per chunk
             for chunk in _split_text(segment, max_len=2000):
                 parts.append({"type": "text", "text": {"content": chunk}})
     return parts or [{"type": "text", "text": {"content": ""}}]
