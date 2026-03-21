@@ -161,6 +161,10 @@ The workflow runs daily at **01:00 UTC (09:00 Beijing)**. You can also trigger i
 └── requirements.txt
 ```
 
+## 🙏 Credits
+
+- [follow-builders](https://github.com/zarazhangrui/follow-builders) by [Zara Zhang](https://github.com/zarazhangrui) — the `follow_builders_x` and `follow_builders_podcasts` source types are inspired by and built on top of her centralized AI builders feed. No API key required thanks to her work.
+
 ---
 
 <a name="chinese"></a>
@@ -319,3 +323,7 @@ Workflow 每天 **UTC 01:00（北京时间 09:00）** 自动运行，也可在 A
 ├── sources.example.yaml           # 信息源配置模板
 └── requirements.txt
 ```
+
+## 🙏 致谢
+
+- [follow-builders](https://github.com/zarazhangrui/follow-builders) by [Zara Zhang](https://github.com/zarazhangrui) — `follow_builders_x` 和 `follow_builders_podcasts` 两种信息源类型借鉴自她维护的 AI 大佬中央 Feed，无需任何 API key 即可使用。
