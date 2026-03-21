@@ -35,6 +35,8 @@ def send_email(
     html_body = re.sub(r"^## (.+)$", r"<h2>\1</h2>", html_body, flags=re.MULTILINE)
     html_body = re.sub(r"^# (.+)$", r"<h1>\1</h1>", html_body, flags=re.MULTILINE)
     html_body = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", html_body)
+    # markdown 链接 [text](url) → <a href>
+    html_body = re.sub(r"\[([^\]]+)\]\((https?://[^)]+)\)", r'<a href="\2" style="color:#1a73e8">\1</a>', html_body)
     html_body = html_body.replace("\n", "<br>\n")
     html_body = f"<html><body style='font-family:sans-serif;max-width:800px;margin:auto;padding:20px'>{html_body}</body></html>"
     msg.attach(MIMEText(html_body, "html", "utf-8"))
