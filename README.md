@@ -11,18 +11,18 @@ An automated pipeline that aggregates your personal information sources every da
 
 ## ✨ Features
 
-| Feature | Description |
-|---------|-------------|
-| **30+ source types** | RSS, Substack, blogs, podcasts, YouTube transcripts, Twitter/X timeline, newsletters |
-| **Smart deduplication** | Tracks seen articles across days — no repeats |
-| **Age filtering** | Skips articles older than 30 days by default |
-| **Claude AI summaries** | Structured digest with highlights, bullet points, and source-by-source breakdown |
-| **Multilingual output** | Chinese (`zh`), English (`en`), or bilingual (`bilingual`) |
-| **Notion integration** | Creates a new page daily with clickable links |
-| **Email delivery** | Sends HTML email with clickable links to multiple recipients |
-| **Telegram notifications** | Push digest to Telegram on completion |
-| **GitHub Actions** | Runs automatically every day at 9:00 AM Beijing time — no server needed |
-| **No updates? Still shows** | Sources with no new content are listed as "no updates today" so you know they were checked |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **30+ source types** | RSS, Substack, blogs, podcasts, YouTube transcripts, Twitter/X timeline, newsletters | ✅ |
+| **Smart deduplication** | Tracks seen articles across days — no repeats | ✅ |
+| **Age filtering** | Skips articles older than 30 days by default | ✅ |
+| **Claude AI summaries** | Structured digest with highlights, bullet points, and source-by-source breakdown | ✅ |
+| **Multilingual output** | Chinese (`zh`), English (`en`), or bilingual (`bilingual`) | ✅ |
+| **Notion integration** | Creates a new page daily with clickable links | ✅ |
+| **Email delivery** | Sends HTML email with clickable links to multiple recipients | ✅ |
+| **GitHub Actions** | Runs automatically every day at 9:00 AM Beijing time — no server needed | ✅ |
+| **No updates? Still shows** | Sources with no new content are listed as "no updates today" so you know they were checked | ✅ |
+| **Telegram notifications** | Push digest to Telegram on completion | 🚧 untested |
 
 ## 🗂️ Supported Source Types
 
@@ -177,18 +177,18 @@ The workflow runs daily at **01:00 UTC (09:00 Beijing)**. You can also trigger i
 
 ## ✨ 功能特性
 
-| 功能 | 说明 |
-|------|------|
-| **30+ 种信息源** | RSS、Substack、博客、播客、YouTube 字幕、Twitter/X 时间线、Newsletter |
-| **跨日去重** | 追踪已读文章，不重复推送 |
-| **时效过滤** | 默认跳过 30 天前的旧文章 |
-| **Claude AI 总结** | 结构化简报：今日要点 + bullet points + 来源详情 |
-| **多语言输出** | 中文（`zh`）、英文（`en`）、中英双语（`bilingual`）|
-| **Notion 集成** | 每天在 Notion 数据库创建新页面，链接可点击 |
-| **邮件推送** | 发送 HTML 格式邮件，链接可点击，支持多个收件人 |
-| **Telegram 通知** | 生成完成后推送到 Telegram |
-| **GitHub Actions** | 每天北京时间 9:00 自动运行，无需服务器 |
-| **无更新也显示** | 没有新内容的来源会标注「今日无新内容」，让你确认它被检查过 |
+| 功能 | 说明 | 状态 |
+|------|------|------|
+| **30+ 种信息源** | RSS、Substack、博客、播客、YouTube 字幕、Twitter/X 时间线、Newsletter | ✅ |
+| **跨日去重** | 追踪已读文章，不重复推送 | ✅ |
+| **时效过滤** | 默认跳过 30 天前的旧文章 | ✅ |
+| **Claude AI 总结** | 结构化简报：今日要点 + bullet points + 来源详情 | ✅ |
+| **多语言输出** | 中文（`zh`）、英文（`en`）、中英双语（`bilingual`）| ✅ |
+| **Notion 集成** | 每天在 Notion 数据库创建新页面，链接可点击 | ✅ |
+| **邮件推送** | 发送 HTML 格式邮件，链接可点击，支持多个收件人 | ✅ |
+| **GitHub Actions** | 每天北京时间 9:00 自动运行，无需服务器 | ✅ |
+| **无更新也显示** | 没有新内容的来源会标注「今日无新内容」，让你确认它被检查过 | ✅ |
+| **Telegram 通知** | 生成完成后推送到 Telegram | 🚧 未测试 |
 
 ## 🗂️ 支持的信息源类型
 
