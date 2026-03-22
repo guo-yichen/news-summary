@@ -68,10 +68,6 @@ sources:
     max_entries: 3
     fetch_fulltext: true
 
-  - type: rss
-    name: "Windsurf Changelog"
-    url: "https://raw.githubusercontent.com/Olshansk/rss-feeds/refs/heads/main/feeds/feed_windsurf_changelog.xml"
-    max_entries: 3
 
   - type: rss
     name: "GitHub Blog (AI)"
