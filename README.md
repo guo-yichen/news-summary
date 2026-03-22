@@ -18,7 +18,7 @@ An automated pipeline that aggregates your personal information sources every da
 | **Age filtering** | Skips articles older than 30 days by default | ✅ |
 | **Claude AI summaries** | Structured digest with highlights, bullet points, and source-by-source breakdown | ✅ |
 | **Multilingual output** | Chinese (`zh`), English (`en`), or bilingual (`bilingual`) | ✅ |
-| **Notion integration** | Creates a new page daily with clickable links | ✅ |
+| **Notion integration** | Creates a new page daily with clickable links; auto-archives duplicate pages if re-run on the same date | ✅ |
 | **Email delivery** | Sends HTML email with clickable links to multiple recipients | ✅ |
 | **GitHub Actions** | Runs automatically every day at 9:00 AM Beijing time — no server needed | ✅ |
 | **No updates? Still shows** | Sources with no new content are listed as "no updates today" so you know they were checked | ✅ |
@@ -52,7 +52,7 @@ pip install -r requirements.txt
 cp sources.example.yaml sources.yaml
 ```
 
-Edit `sources.yaml` with your sources. See `sources.example.yaml` for all options.
+Edit `sources.yaml` with your sources. `sources.example.yaml` includes 30+ real curated sources (Anthropic, OpenAI, Google, Simon Willison, Latent Space, The Pragmatic Engineer, YC/VC blogs, and more) — all verified working. Use it as-is or as a starting point.
 
 Set the output language at the top:
 ```yaml
@@ -184,7 +184,7 @@ The workflow runs daily at **01:00 UTC (09:00 Beijing)**. You can also trigger i
 | **时效过滤** | 默认跳过 30 天前的旧文章 | ✅ |
 | **Claude AI 总结** | 结构化简报：今日要点 + bullet points + 来源详情 | ✅ |
 | **多语言输出** | 中文（`zh`）、英文（`en`）、中英双语（`bilingual`）| ✅ |
-| **Notion 集成** | 每天在 Notion 数据库创建新页面，链接可点击 | ✅ |
+| **Notion 集成** | 每天在 Notion 数据库创建新页面，链接可点击；同一天重复运行时自动归档旧页面，避免重复 | ✅ |
 | **邮件推送** | 发送 HTML 格式邮件，链接可点击，支持多个收件人 | ✅ |
 | **GitHub Actions** | 每天北京时间 9:00 自动运行，无需服务器 | ✅ |
 | **无更新也显示** | 没有新内容的来源会标注「今日无新内容」，让你确认它被检查过 | ✅ |
@@ -218,7 +218,7 @@ pip install -r requirements.txt
 cp sources.example.yaml sources.yaml
 ```
 
-编辑 `sources.yaml`，填入你要关注的信息源。参考 `sources.example.yaml` 查看所有配置选项。
+编辑 `sources.yaml`，填入你要关注的信息源。`sources.example.yaml` 已内置 30+ 个真实可用的信息源（Anthropic、OpenAI、Google、Simon Willison、Latent Space、The Pragmatic Engineer、YC/投资人博客等），全部验证可用，可以直接使用或按需删减。
 
 在文件顶部设置输出语言：
 ```yaml
