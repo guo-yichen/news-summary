@@ -1,80 +1,167 @@
 # 复制为 sources.yaml 并填入你的信息源
 # 将 sources.yaml 加入 .gitignore，不要把私密信息提交到 Git
+#
+# 所有 RSS URL 均已验证可用（2026-03-22）
 
 # 输出语言：zh（中文）| en（English）| bilingual（中英双语交错）
 language: zh
 
 sources:
-  # RSS 类（Substack、博客、YouTube、播客都支持 RSS）
-  - type: rss
-    name: "某 Substack"
-    url: "https://xxx.substack.com/feed"
-    max_entries: 3       # 每个源取最新几条，默认 3
-    fetch_fulltext: true # 抓取文章正文（需要 trafilatura），默认 false
-    fulltext_chars: 8000 # 正文最大字符数，默认 8000
+
+  # ── AI 公司官方博客 ────────────────────────────────────────────────────────
+  # Anthropic / OpenAI / Google 官网不提供 RSS，由 Olshansk/rss-feeds 社区维护
+  # 项目地址: https://github.com/Olshansk/rss-feeds （每小时自动更新）
 
   - type: rss
-    name: "某博客"
-    url: "https://example.com/feed.xml"
-    max_entries: 5
+    name: "Anthropic News"
+    url: "https://raw.githubusercontent.com/Olshansk/rss-feeds/refs/heads/main/feeds/feed_anthropic_news.xml"
+    max_entries: 3
     fetch_fulltext: true
 
-  # YouTube 频道 RSS 格式: https://www.youtube.com/feeds/videos.xml?channel_id=CHANNEL_ID
   - type: rss
-    name: "某 YouTube 频道"
-    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCxxxxxx"
+    name: "Anthropic Engineering Blog"
+    url: "https://raw.githubusercontent.com/Olshansk/rss-feeds/refs/heads/main/feeds/feed_anthropic_engineering.xml"
+    max_entries: 3
+    fetch_fulltext: true
+
+  - type: rss
+    name: "Anthropic Research"
+    url: "https://raw.githubusercontent.com/Olshansk/rss-feeds/refs/heads/main/feeds/feed_anthropic_research.xml"
+    max_entries: 3
+    fetch_fulltext: true
+
+  - type: rss
+    name: "OpenAI News"
+    url: "https://openai.com/news/rss.xml"
+    max_entries: 3
+    fetch_fulltext: true
+
+  - type: rss
+    name: "OpenAI Research"
+    url: "https://raw.githubusercontent.com/Olshansk/rss-feeds/refs/heads/main/feeds/feed_openai_research.xml"
+    max_entries: 3
+    fetch_fulltext: true
+
+  - type: rss
+    name: "Google DeepMind Blog"
+    url: "https://deepmind.google/blog/rss.xml"
+    max_entries: 3
+    fetch_fulltext: true
+
+  - type: rss
+    name: "Google Research Blog"
+    url: "https://research.google/blog/rss/"
+    max_entries: 3
+    fetch_fulltext: true
+
+  # ── 开发工具博客 ───────────────────────────────────────────────────────────
+
+  - type: rss
+    name: "Cursor Blog"
+    url: "https://raw.githubusercontent.com/Olshansk/rss-feeds/refs/heads/main/feeds/feed_cursor.xml"
+    max_entries: 3
+    fetch_fulltext: true
+
+  - type: rss
+    name: "Windsurf Blog"
+    url: "https://raw.githubusercontent.com/Olshansk/rss-feeds/refs/heads/main/feeds/feed_windsurf_blog.xml"
+    max_entries: 3
+    fetch_fulltext: true
+
+  - type: rss
+    name: "Windsurf Changelog"
+    url: "https://raw.githubusercontent.com/Olshansk/rss-feeds/refs/heads/main/feeds/feed_windsurf_changelog.xml"
     max_entries: 3
 
-  # 播客 RSS
   - type: rss
-    name: "某播客"
-    url: "https://feeds.example.com/podcast"
-    max_entries: 2
+    name: "GitHub Blog (AI)"
+    url: "https://github.blog/ai-and-ml/feed/"
+    max_entries: 3
+    fetch_fulltext: true
 
-  # Twitter/X：用 Nitter 或 OpenRSS 转成 RSS
-  # Nitter: https://nitter.net/username/rss
-  # OpenRSS: https://openrss.org/twitter.com/username
   - type: rss
-    name: "某 Twitter 博主"
-    url: "https://nitter.net/username/rss"
+    name: "Hugging Face Blog"
+    url: "https://huggingface.co/blog/feed.xml"
+    max_entries: 3
+    fetch_fulltext: true
+
+  # ── 技术博客 ───────────────────────────────────────────────────────────────
+
+  - type: rss
+    name: "Simon Willison's Blog"
+    url: "https://simonwillison.net/atom/everything/"
     max_entries: 5
+    fetch_fulltext: true
+    fulltext_chars: 8000
 
-  # Email 订阅（需要 IMAP 配置）
-  # - type: email
-  #   name: "某 Newsletter"
-  #   imap_server: "imap.gmail.com"
-  #   email: "your@gmail.com"
-  #   password: "your-app-password"  # Gmail 用应用专用密码
-  #   folder: "INBOX"
-  #   search_from: "newsletter@example.com"  # 可选：只取特定发件人
-  #   max_emails: 5
+  - type: rss
+    name: "Latent Space Newsletter"
+    url: "https://www.latent.space/feed"
+    max_entries: 3
+    fetch_fulltext: true
+    fulltext_chars: 10000
 
-  # ── YouTube 完整字幕（需要 SUPADATA_API_KEY，免费 100 credits/月）─────────
-  # 注册: https://dash.supadata.ai
-  # 每次运行取最近 lookback_hours 内最老的未看过一集，自动去重
-  - type: youtube_transcript
-    name: "Latent Space Podcast"
-    channel_handle: "@latentspacepod"  # 频道 handle（二选一）
-    # playlist_id: "PLxxxxxx"          # 或播放列表 ID
-    lookback_hours: 72                 # 可选，默认 72h
+  - type: rss
+    name: "The Pragmatic Engineer"
+    url: "https://newsletter.pragmaticengineer.com/feed"
+    max_entries: 2
+    fetch_fulltext: true
+    fulltext_chars: 8000
 
-  # ── follow-builders 中央 Feed（无需 API key，直接拉 GitHub）──────────────
-  # 来源: https://github.com/zarazhangrui/follow-builders
-  # 包含 Karpathy、Sam Altman 等 25 位 AI 大佬的推文（24h 内）
+  - type: rss
+    name: "Ahead of AI (Sebastian Raschka)"
+    url: "https://magazine.sebastianraschka.com/feed"
+    max_entries: 2
+    fetch_fulltext: true
+    fulltext_chars: 10000
 
-  - type: follow_builders_x
-    name: "AI Builders Twitter"
-    max_tweets_per_person: 3   # 每人最多取几条推文，默认 3
+  - type: rss
+    name: "Lilian Weng's Blog"
+    url: "https://lilianweng.github.io/index.xml"
+    max_entries: 2
+    fetch_fulltext: true
+    fulltext_chars: 10000
 
-  # 包含 Latent Space、No Priors 等 5 个顶级 AI 播客（72h 内，含字幕）
-  - type: follow_builders_podcasts
-    name: "AI Podcasts"
-    max_episodes: 2              # 最多取几集，默认 3
-    transcript_chars: 15000      # 每集字幕截取前多少字，默认 15000
+  - type: rss
+    name: "Hamel Husain's Blog"
+    url: "https://hamelhusain.substack.com/feed"
+    max_entries: 3
+    fetch_fulltext: true
 
-  # ── VC / 投资人信息源 ───────────────────────────────────────────────────────
+  - type: rss
+    name: "Chain of Thought (Dan Shipper)"
+    url: "https://every.to/chain-of-thought/feed"
+    max_entries: 2
+    fetch_fulltext: true
+    fulltext_chars: 8000
 
-  # Paul Graham（YC 联创）— 文章由社区维护的 RSS 抓取，官方 feed 已停更
+  - type: rss
+    name: "Context Window"
+    url: "https://contextwindow.substack.com/feed"
+    max_entries: 3
+    fetch_fulltext: true
+
+  - type: rss
+    name: "Argmin Gravitas (Ben Recht)"
+    url: "https://www.argmin.net/feed"
+    max_entries: 2
+    fetch_fulltext: true
+
+  - type: rss
+    name: "Chips and Cheese"
+    url: "https://chipsandcheese.substack.com/feed"
+    max_entries: 2
+    fetch_fulltext: true
+    fulltext_chars: 8000
+
+  - type: rss
+    name: "South Park Commons"
+    url: "https://blog.southparkcommons.com/feed"
+    max_entries: 2
+    fetch_fulltext: true
+
+  # ── 创业 / 思想 ────────────────────────────────────────────────────────────
+
   - type: rss
     name: "Paul Graham Essays"
     url: "https://program247365.github.io/paulgraham-rss/rss.xml"
@@ -82,13 +169,30 @@ sources:
     fetch_fulltext: true
     fulltext_chars: 8000
 
-  # Garry Tan（YC CEO）— YouTube 创业/投资分享
+  - type: rss
+    name: "Sunday Letters (Sam Schillace)"
+    url: "https://sundaylettersfromsam.substack.com/feed"
+    max_entries: 2
+    fetch_fulltext: true
+
+  - type: rss
+    name: "Naval"
+    url: "https://naval.libsyn.com/rss"
+    max_entries: 2
+
+  - type: rss
+    name: "The Leverage"
+    url: "https://getleverage.substack.com/feed"
+    max_entries: 3
+    fetch_fulltext: true
+
+  # ── VC / 投资人 ────────────────────────────────────────────────────────────
+
   - type: rss
     name: "Garry Tan (YC CEO) YouTube"
     url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCIBgYfDjtWlbJhg--Z4sOgQ"
     max_entries: 3
 
-  # Elad Gil（投资人，High Growth Handbook 作者）— Substack
   - type: rss
     name: "Elad Gil Blog"
     url: "https://blog.eladgil.com/feed"
@@ -96,7 +200,6 @@ sources:
     fetch_fulltext: true
     fulltext_chars: 8000
 
-  # Fred Wilson（Union Square Ventures）— AVC 博客，每日更新
   - type: rss
     name: "Fred Wilson (AVC)"
     url: "https://feeds.feedblitz.com/avcfeed"
@@ -104,13 +207,33 @@ sources:
     fetch_fulltext: true
     fulltext_chars: 6000
 
-  # Harry Stebbings（20VC 创始人）— Substack，VC 行业洞察
   - type: rss
     name: "Harry Stebbings (20VC)"
     url: "https://20vc.substack.com/feed"
     max_entries: 3
     fetch_fulltext: true
     fulltext_chars: 6000
+
+  # ── AI 聚合 / follow-builders ──────────────────────────────────────────────
+  # 来源: https://github.com/zarazhangrui/follow-builders
+
+  # 包含 Karpathy、Sam Altman 等 25 位 AI 大佬的推文（24h 内）
+  - type: follow_builders_x
+    name: "AI Builders Twitter"
+    max_tweets_per_person: 3
+
+  # 包含 Latent Space、No Priors 等 5 个顶级 AI 播客（72h 内，含字幕）
+  - type: follow_builders_podcasts
+    name: "AI Podcasts"
+    max_episodes: 2
+    transcript_chars: 15000
+
+  # ── YouTube 完整字幕（需要 SUPADATA_API_KEY，免费 100 credits/月）─────────
+  # 注册: https://dash.supadata.ai
+  - type: youtube_transcript
+    name: "Latent Space Podcast"
+    channel_handle: "@latentspacepod"
+    lookback_hours: 72
 
 # ── 推送渠道（可选）────────────────────────────────────────────────────────────
 # 以下配置也可以通过环境变量传入（NOTION_TOKEN / TELEGRAM_BOT_TOKEN 等）
