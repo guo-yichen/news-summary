@@ -117,6 +117,14 @@ def write_to_notion(
     today = date_str or datetime.now().strftime("%Y-%m-%d")
     title = f"📅 {today} 信息简报"
 
+    # 同一天重复运行时，先 archive 掉已有的同名页面，避免重复
+    existing = client.databases.query(
+        database_id=db_id,
+        filter={"property": "title", "title": {"equals": title}},
+    )
+    for old_page in existing.get("results", []):
+        client.pages.update(page_id=old_page["id"], archived=True)
+
     # 将 markdown 总结按 section 拆分成 blocks
     children = _parse_summary_to_blocks(summary_text)
 
