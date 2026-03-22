@@ -55,9 +55,16 @@ def fetch_rss(
             break
 
         title = entry.get("title", "(无标题)")
-        summary = entry.get("summary", entry.get("description", ""))
         link = entry.get("link", "")
         published = entry.get("published", entry.get("updated", ""))
+
+        # 优先取 content:encoded（Substack / WordPress 全文在这里），
+        # 再 fallback 到 summary / description（短摘要）
+        content_entries = entry.get("content", [])
+        if content_entries:
+            summary = content_entries[0].get("value", "")
+        else:
+            summary = entry.get("summary", entry.get("description", ""))
 
         # 跳过超过 max_age_days 的文章
         published_parsed = entry.get("published_parsed") or entry.get("updated_parsed")
@@ -70,17 +77,21 @@ def fetch_rss(
         if link and _state.is_seen(st, "seenArticles", link):
             continue
 
-        # 尝试抓取全文
-        content = None
-        if fetch_fulltext and link:
-            content = _fetch_fulltext(link, max_chars=fulltext_chars)
+        # 清理 RSS 内容里的 HTML 标签
+        if summary and "<" in summary:
+            summary = re.sub(r"<[^>]+>", " ", summary)
+            summary = " ".join(summary.split())
 
-        # 回退到 RSS 摘要
-        if not content:
-            content = summary
-            if content and "<" in content:
-                content = re.sub(r"<[^>]+>", " ", content)
-                content = " ".join(content.split())
+        # 只有当 RSS 里没有充足内容时才用 trafilatura 抓全文
+        # （Substack content:encoded 通常已足够，不需要再爬页面）
+        content = summary if len(summary) >= 200 else None
+        if fetch_fulltext and link and not content:
+            content = _fetch_fulltext(link, max_chars=fulltext_chars)
+            if not content:
+                content = summary  # trafilatura 失败则保留 RSS 摘要
+
+        if content and len(content) > fulltext_chars:
+            content = content[:fulltext_chars] + "…（正文已截断）"
 
         if link:
             _state.mark_seen(st, "seenArticles", link)
