@@ -148,6 +148,9 @@ def run(config_path: str = "sources.yaml", output_dir: str = "summaries", api_ke
     if error_items:
         print(f"[警告] 跳过 {len(error_items)} 个抓取失败的条目: {[i.source_name for i in error_items]}")
 
+    # 把"暂无更新"的条目排到末尾，使输出中有内容的来源优先显示
+    valid_items.sort(key=lambda i: i.title == "暂无更新")
+
     summary_text = summarize(valid_items, api_key=api_key, language=language)
 
     output_mode = os.environ.get("OUTPUT_MODE", "markdown")  # notion | markdown | both
