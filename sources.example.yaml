@@ -9,12 +9,15 @@ sources:
   - type: rss
     name: "某 Substack"
     url: "https://xxx.substack.com/feed"
-    max_entries: 3  # 每个源取最新几条，默认 3
+    max_entries: 3       # 每个源取最新几条，默认 3
+    fetch_fulltext: true # 抓取文章正文（需要 trafilatura），默认 false
+    fulltext_chars: 8000 # 正文最大字符数，默认 8000
 
   - type: rss
     name: "某博客"
     url: "https://example.com/feed.xml"
     max_entries: 5
+    fetch_fulltext: true
 
   # YouTube 频道 RSS 格式: https://www.youtube.com/feeds/videos.xml?channel_id=CHANNEL_ID
   - type: rss
@@ -66,5 +69,66 @@ sources:
   # 包含 Latent Space、No Priors 等 5 个顶级 AI 播客（72h 内，含字幕）
   - type: follow_builders_podcasts
     name: "AI Podcasts"
-    max_episodes: 2            # 最多取几集，默认 3
-    transcript_chars: 2000     # 每集字幕截取前多少字，默认 2000
+    max_episodes: 2              # 最多取几集，默认 3
+    transcript_chars: 15000      # 每集字幕截取前多少字，默认 15000
+
+  # ── VC / 投资人信息源 ───────────────────────────────────────────────────────
+
+  # Paul Graham（YC 联创）— 文章由社区维护的 RSS 抓取，官方 feed 已停更
+  - type: rss
+    name: "Paul Graham Essays"
+    url: "https://program247365.github.io/paulgraham-rss/rss.xml"
+    max_entries: 3
+    fetch_fulltext: true
+    fulltext_chars: 8000
+
+  # Garry Tan（YC CEO）— YouTube 创业/投资分享
+  - type: rss
+    name: "Garry Tan (YC CEO) YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCIBgYfDjtWlbJhg--Z4sOgQ"
+    max_entries: 3
+
+  # Elad Gil（投资人，High Growth Handbook 作者）— Substack
+  - type: rss
+    name: "Elad Gil Blog"
+    url: "https://blog.eladgil.com/feed"
+    max_entries: 3
+    fetch_fulltext: true
+    fulltext_chars: 8000
+
+  # Fred Wilson（Union Square Ventures）— AVC 博客，每日更新
+  - type: rss
+    name: "Fred Wilson (AVC)"
+    url: "https://feeds.feedblitz.com/avcfeed"
+    max_entries: 3
+    fetch_fulltext: true
+    fulltext_chars: 6000
+
+  # Harry Stebbings（20VC 创始人）— Substack，VC 行业洞察
+  - type: rss
+    name: "Harry Stebbings (20VC)"
+    url: "https://20vc.substack.com/feed"
+    max_entries: 3
+    fetch_fulltext: true
+    fulltext_chars: 6000
+
+# ── 推送渠道（可选）────────────────────────────────────────────────────────────
+# 以下配置也可以通过环境变量传入（NOTION_TOKEN / TELEGRAM_BOT_TOKEN 等）
+
+# Notion：在数据库中每天创建一个新页面
+# 创建步骤：https://www.notion.so/my-integrations → New Integration → 复制 token
+# 然后在数据库页面右上角 ... → Connections → 添加 Integration
+# 复制数据库 URL 中的 32 位 ID（问号前那段，去掉连字符）
+# notion:
+#   token: "secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+#   database_id: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# Telegram：通过 bot 发送摘要到个人或群组
+# 步骤：
+# 1. 在 Telegram 搜索 @BotFather，发送 /newbot，获得 token
+# 2. 向你的 bot 发一条消息
+# 3. 访问 https://api.telegram.org/bot<TOKEN>/getUpdates
+#    在 result[0].message.chat.id 找到你的 chat_id
+# telegram:
+#   bot_token: "123456789:AAFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+#   chat_id: "123456789"   # 个人 chat ID 或群组负数 ID
