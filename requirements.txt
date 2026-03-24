@@ -1,4 +1,4 @@
-anthropic>=0.39.0
+openai>=1.0.0
 feedparser>=6.0.0
 PyYAML>=6.0.0
 trafilatura>=1.6.0

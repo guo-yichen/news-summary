@@ -7,7 +7,7 @@
 """
 
 import json
-import anthropic
+from openai import OpenAI
 from src.fetchers.base import RawItem
 
 _PROMPT_BASE = """
@@ -121,12 +121,12 @@ def prepare_digest(items: list[RawItem]) -> dict:
 def summarize(
     items: list[RawItem],
     api_key: str | None = None,
-    model: str = "claude-sonnet-4-6",
+    model: str = "moonshot-v1-32k",
     language: str = "zh",
 ) -> str:
-    """调用 Claude 生成总结。
+    """调用 Kimi 生成总结。
 
-    先通过 prepare_digest() 整理成 JSON，再送给 Claude，
+    先通过 prepare_digest() 整理成 JSON，再送给 Kimi，
     让 LLM 只做「读 JSON → 写文章」一件事，数据与生成解耦。
 
     language: "zh"（中文）| "en"（英文）| "bilingual"（中英双语交错）
@@ -140,11 +140,13 @@ def summarize(
 
     system_prompt = _PROMPTS.get(language, _PROMPTS["zh"])
 
-    client = anthropic.Anthropic(api_key=api_key)
-    response = client.messages.create(
+    client = OpenAI(api_key=api_key, base_url="https://api.moonshot.cn/v1")
+    response = client.chat.completions.create(
         model=model,
         max_tokens=8192,
-        system=system_prompt,
-        messages=[{"role": "user", "content": content}],
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": content},
+        ],
     )
-    return response.content[0].text
+    return response.choices[0].message.content
