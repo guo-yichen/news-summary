@@ -7,7 +7,8 @@
 """
 
 import json
-from openai import OpenAI
+import time
+from openai import OpenAI, BadRequestError, RateLimitError
 from src.fetchers.base import RawItem
 
 _PROMPT_BASE = """
@@ -141,12 +142,34 @@ def summarize(
     system_prompt = _PROMPTS.get(language, _PROMPTS["zh"])
 
     client = OpenAI(api_key=api_key, base_url="https://api.moonshot.cn/v1")
-    response = client.chat.completions.create(
-        model=model,
-        max_tokens=8192,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": content},
-        ],
-    )
-    return response.choices[0].message.content
+    for attempt in range(3):
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                max_tokens=8192,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": content},
+                ],
+            )
+            return response.choices[0].message.content
+        except RateLimitError:
+            if attempt < 2:
+                time.sleep(30 * (attempt + 1))
+                continue
+            fallback = {
+                "zh": "今日摘要生成失败：API 负载过高，请稍后重试。",
+                "en": "Summary generation failed: API engine overloaded. Please try again later.",
+                "bilingual": "今日摘要生成失败：API 负载过高。\nSummary generation failed: API engine overloaded.",
+            }
+            return fallback.get(language, fallback["zh"])
+        except BadRequestError as e:
+            error_msg = str(e)
+            if "content_filter" in error_msg or "high risk" in error_msg:
+                fallback = {
+                    "zh": "今日摘要生成失败：内容被 API 内容过滤器拦截，请检查原始抓取内容。",
+                    "en": "Summary generation failed: content was blocked by the API content filter. Please review the raw fetched content.",
+                    "bilingual": "今日摘要生成失败：内容被 API 内容过滤器拦截。\nSummary generation failed: content was blocked by the API content filter.",
+                }
+                return fallback.get(language, fallback["zh"])
+            raise
