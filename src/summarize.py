@@ -142,34 +142,74 @@ def summarize(
     system_prompt = _PROMPTS.get(language, _PROMPTS["zh"])
 
     client = OpenAI(api_key=api_key, base_url="https://api.moonshot.cn/v1")
-    for attempt in range(3):
-        try:
-            response = client.chat.completions.create(
-                model=model,
-                max_tokens=8192,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": content},
-                ],
-            )
-            return response.choices[0].message.content
-        except RateLimitError:
-            if attempt < 2:
-                time.sleep(30 * (attempt + 1))
-                continue
+
+    def _call_api(payload: str) -> str:
+        for attempt in range(3):
+            try:
+                response = client.chat.completions.create(
+                    model=model,
+                    max_tokens=8192,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": payload},
+                    ],
+                )
+                return response.choices[0].message.content
+            except RateLimitError:
+                if attempt < 2:
+                    time.sleep(30 * (attempt + 1))
+                    continue
+                raise
+        raise RuntimeError("unreachable")
+
+    try:
+        return _call_api(content)
+    except RateLimitError:
+        fallback = {
+            "zh": "今日摘要生成失败：API 负载过高，请稍后重试。",
+            "en": "Summary generation failed: API engine overloaded. Please try again later.",
+            "bilingual": "今日摘要生成失败：API 负载过高。\nSummary generation failed: API engine overloaded.",
+        }
+        return fallback.get(language, fallback["zh"])
+    except BadRequestError as e:
+        if "content_filter" not in str(e) and "high risk" not in str(e):
+            raise
+        # Full batch blocked — retry source-by-source, skipping blocked ones
+        print("[警告] 全量内容被内容过滤器拦截，尝试按来源逐一重试...")
+        by_source = {}
+        for item in items:
+            by_source.setdefault(item.source_name, []).append(item)
+
+        passed_items: list[RawItem] = []
+        skipped_sources: list[str] = []
+        for source_name, source_items in by_source.items():
+            test_digest = prepare_digest(source_items)
+            test_content = json.dumps(test_digest, ensure_ascii=False, indent=2)
+            try:
+                _call_api(test_content)
+                passed_items.extend(source_items)
+            except BadRequestError as e2:
+                if "content_filter" in str(e2) or "high risk" in str(e2):
+                    print(f"[警告] 跳过被过滤的来源: {source_name}")
+                    skipped_sources.append(source_name)
+                else:
+                    raise
+            except RateLimitError:
+                # If rate limited mid-bisect, include the source optimistically
+                passed_items.extend(source_items)
+
+        if not passed_items:
             fallback = {
-                "zh": "今日摘要生成失败：API 负载过高，请稍后重试。",
-                "en": "Summary generation failed: API engine overloaded. Please try again later.",
-                "bilingual": "今日摘要生成失败：API 负载过高。\nSummary generation failed: API engine overloaded.",
+                "zh": "今日摘要生成失败：所有内容均被 API 内容过滤器拦截。",
+                "en": "Summary generation failed: all content was blocked by the API content filter.",
+                "bilingual": "今日摘要生成失败：所有内容均被 API 内容过滤器拦截。\nSummary generation failed: all content was blocked.",
             }
             return fallback.get(language, fallback["zh"])
-        except BadRequestError as e:
-            error_msg = str(e)
-            if "content_filter" in error_msg or "high risk" in error_msg:
-                fallback = {
-                    "zh": "今日摘要生成失败：内容被 API 内容过滤器拦截，请检查原始抓取内容。",
-                    "en": "Summary generation failed: content was blocked by the API content filter. Please review the raw fetched content.",
-                    "bilingual": "今日摘要生成失败：内容被 API 内容过滤器拦截。\nSummary generation failed: content was blocked by the API content filter.",
-                }
-                return fallback.get(language, fallback["zh"])
-            raise
+
+        clean_digest = prepare_digest(passed_items)
+        clean_content = json.dumps(clean_digest, ensure_ascii=False, indent=2)
+        result = _call_api(clean_content)
+        if skipped_sources:
+            note = "\n\n---\n⚠️ 以下来源因内容过滤被跳过：" + "、".join(skipped_sources)
+            result += note
+        return result
