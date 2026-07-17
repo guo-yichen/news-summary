@@ -130,7 +130,7 @@ def fetch_all(sources: list[dict], global_max_entries: int = 3, global_max_age_d
 
 
 def run(config_path: str = "sources.yaml", output_dir: str = "summaries", api_key: str | None = None) -> str:
-    """完整流程：抓取 → 总结 → 保存（Notion 或 Markdown）"""
+    """完整流程：抓取 → 总结 → 保存"""
     from datetime import datetime
 
     config = load_config(config_path)
@@ -153,11 +153,12 @@ def run(config_path: str = "sources.yaml", output_dir: str = "summaries", api_ke
 
     summary_text = summarize(valid_items, api_key=api_key, language=language)
 
-    output_mode = os.environ.get("OUTPUT_MODE", "markdown")  # notion | markdown | both
+    output_mode = os.environ.get("OUTPUT_MODE", "markdown")  # notion | markdown | html | both | all
+    html_output = os.environ.get("HTML_OUTPUT", "").lower() in ("1", "true", "yes", "on")
     today = datetime.now().strftime("%Y-%m-%d")
     results = []
 
-    if output_mode in ("markdown", "both"):
+    if output_mode in ("markdown", "both", "all"):
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         out_path = Path(output_dir) / f"{today}.md"
         title_map = {"zh": "每日摘要", "en": "Daily Summary", "bilingual": "每日摘要 / Daily Summary"}
@@ -167,7 +168,14 @@ def run(config_path: str = "sources.yaml", output_dir: str = "summaries", api_ke
             f.write(summary_text)
         results.append(f"Markdown: {out_path}")
 
-    if output_mode in ("notion", "both"):
+    if output_mode in ("html", "all") or html_output:
+        from src.html_writer import write_html_summary
+        html_dir = os.environ.get("HTML_OUTPUT_DIR", "briefs")
+        html_path = write_html_summary(summary_text, date=today, output_dir=html_dir, language=language)
+        results.append(f"HTML: {html_path}")
+        results.append(f"HTML latest: {Path(html_dir) / 'latest.html'}")
+
+    if output_mode in ("notion", "both", "all"):
         from src.notion_writer import write_to_notion
         try:
             notion_url = write_to_notion(summary_text)

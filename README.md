@@ -20,6 +20,7 @@ An automated pipeline that aggregates your personal information sources every da
 | **Multilingual output** | Chinese (`zh`), English (`en`), or bilingual (`bilingual`) | ✅ |
 | **Notion integration** | Creates a new page daily with clickable links; auto-archives duplicate pages if re-run on the same date | ✅ |
 | **Email delivery** | Sends HTML email with clickable links to multiple recipients | ✅ |
+| **Static HTML output** | Writes browser-friendly `briefs/YYYY-MM-DD.html` and `briefs/latest.html` files | ✅ |
 | **GitHub Actions** | Runs automatically every day at 9:00 AM Beijing time — no server needed | ✅ |
 | **No updates? Still shows** | Sources with no new content are listed as "no updates today" so you know they were checked | ✅ |
 | **Telegram notifications** | Push digest to Telegram on completion | 🚧 untested |
@@ -78,7 +79,9 @@ export TELEGRAM_BOT_TOKEN=your-bot-token
 export TELEGRAM_CHAT_ID=your-chat-id
 
 # Output mode
-export OUTPUT_MODE=both    # notion | markdown | both
+export OUTPUT_MODE=both    # notion | markdown | html | both | all
+export HTML_OUTPUT=true    # optional: generate HTML in addition to OUTPUT_MODE
+export HTML_OUTPUT_DIR=briefs
 ```
 
 ### 4. Run
@@ -90,6 +93,7 @@ python -m src.runner
 Depending on your configuration, the digest will be:
 - Saved to `summaries/YYYY-MM-DD.md` (when `OUTPUT_MODE=markdown` or `both`)
 - Written to Notion as a new page (when `OUTPUT_MODE=notion` or `both`)
+- Saved to `briefs/YYYY-MM-DD.html` and `briefs/latest.html` (when `OUTPUT_MODE=html` or `all`, or when `HTML_OUTPUT=true`)
 - Sent to your inbox as an HTML email with clickable links (when `EMAIL_USER` + `EMAIL_PASSWORD` are set)
 
 ### 5. Twitter/X timeline (optional)
@@ -148,6 +152,7 @@ The workflow runs daily at **01:00 UTC (09:00 Beijing)**. You can also trigger i
 │   ├── summarize.py               # Claude AI summarization
 │   ├── notion_writer.py           # Notion page writer
 │   ├── email_sender.py            # Gmail SMTP sender
+│   ├── html_writer.py             # Static HTML summary writer
 │   ├── telegram_notifier.py       # Telegram push
 │   ├── state.py                   # Cross-day deduplication state
 │   └── fetchers/
@@ -186,6 +191,7 @@ The workflow runs daily at **01:00 UTC (09:00 Beijing)**. You can also trigger i
 | **多语言输出** | 中文（`zh`）、英文（`en`）、中英双语（`bilingual`）| ✅ |
 | **Notion 集成** | 每天在 Notion 数据库创建新页面，链接可点击；同一天重复运行时自动归档旧页面，避免重复 | ✅ |
 | **邮件推送** | 发送 HTML 格式邮件，链接可点击，支持多个收件人 | ✅ |
+| **静态 HTML 输出** | 生成适合浏览器阅读的 `briefs/YYYY-MM-DD.html` 和 `briefs/latest.html` | ✅ |
 | **GitHub Actions** | 每天北京时间 9:00 自动运行，无需服务器 | ✅ |
 | **无更新也显示** | 没有新内容的来源会标注「今日无新内容」，让你确认它被检查过 | ✅ |
 | **Telegram 通知** | 生成完成后推送到 Telegram | 🚧 未测试 |
@@ -244,7 +250,9 @@ export TELEGRAM_BOT_TOKEN=你的-bot-token
 export TELEGRAM_CHAT_ID=你的-chat-id
 
 # 输出模式
-export OUTPUT_MODE=both    # notion | markdown | both
+export OUTPUT_MODE=both    # notion | markdown | html | both | all
+export HTML_OUTPUT=true    # 可选：在 OUTPUT_MODE 之外额外生成 HTML
+export HTML_OUTPUT_DIR=briefs
 ```
 
 ### 4. 运行
@@ -256,6 +264,7 @@ python -m src.runner
 根据你的配置，生成的简报会：
 - 保存为 `summaries/YYYY-MM-DD.md`（`OUTPUT_MODE=markdown` 或 `both` 时）
 - 写入 Notion 数据库（`OUTPUT_MODE=notion` 或 `both` 时）
+- 保存为 `briefs/YYYY-MM-DD.html` 和 `briefs/latest.html`（`OUTPUT_MODE=html` 或 `all`，或 `HTML_OUTPUT=true` 时）
 - 以 HTML 格式发送到邮箱，链接可点击（配置了 `EMAIL_USER` + `EMAIL_PASSWORD` 时）
 
 ### 5. Twitter/X 时间线（可选）
@@ -314,6 +323,7 @@ Workflow 每天 **UTC 01:00（北京时间 09:00）** 自动运行，也可在 A
 │   ├── summarize.py               # Claude AI 总结
 │   ├── notion_writer.py           # Notion 页面写入
 │   ├── email_sender.py            # Gmail SMTP 发送
+│   ├── html_writer.py             # 静态 HTML 简报生成
 │   ├── telegram_notifier.py       # Telegram 推送
 │   ├── state.py                   # 跨日去重状态管理
 │   └── fetchers/
